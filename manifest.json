@@ -1,0 +1,25 @@
+{
+  "name": "Notas Fiscais — Olhatta",
+  "short_name": "NF Olhatta",
+  "description": "Controle de notas fiscais da Olhatta",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EFEAE0",
+  "theme_color": "#2F4C3D",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

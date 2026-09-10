@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Notas Fiscais — Olhatta</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232F4C3D'/%3E%3Ctext x='32' y='43' font-family='Georgia,serif' font-size='27' font-weight='700' fill='%23B4863A' text-anchor='middle'%3ENF%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2F4C3D">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -93,6 +96,42 @@
     color:var(--ink-soft);
     letter-spacing:.01em;
   }
+  .quick-links-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .quick-links{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .quick-link{
+    background:var(--gold-soft);
+    color:#7A5A1E;
+    font-size:11.5px;
+    font-weight:600;
+    padding:4px 11px;
+    border-radius:20px;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+  .quick-link:hover{background:var(--gold); color:#fff;}
+  .links-list{margin-top:12px;}
+  .link-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:6px 0;
+    border-bottom:1px solid var(--paper-line);
+    font-size:13px;
+  }
+  .link-row:last-child{border-bottom:none;}
+  .link-row .link-name{font-weight:600; flex-shrink:0;}
+  .link-row .link-url{color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;}
+  .link-row a.link-url{color:var(--pine-dark);}
+
   .user-chip{
     display:flex;
     align-items:center;
@@ -106,8 +145,11 @@
   }
   .toolbar{
     display:flex;
-    justify-content:flex-end;
-    margin-bottom:22px;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:14px;
   }
   .month-nav{
     display:flex;
@@ -139,26 +181,40 @@
     background:none;
     border:1px solid var(--paper-line);
     color:var(--ink-soft);
-    padding:5px 12px;
+    padding:6px 14px;
     font-size:12.5px;
     border-radius:20px;
     cursor:pointer;
     font-family:'Work Sans', sans-serif;
+    white-space:nowrap;
   }
   .filter-toggle:hover{border-color:var(--gold); color:var(--pine-dark);}
   .filter-row{
     display:none;
     align-items:center;
     flex-wrap:wrap;
-    gap:8px;
-    margin-top:10px;
-    padding-top:10px;
-    border-top:1px dashed var(--paper-line);
-    width:100%;
+    gap:10px 14px;
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    padding:14px 16px;
+    margin-bottom:22px;
   }
   .filter-row.open{display:flex;}
-  .filter-row label{margin:0; font-size:12px; color:var(--ink-soft);}
+  .filter-row .field{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .filter-row label{margin:0; font-size:12.5px; color:var(--ink-soft); white-space:nowrap;}
   .filter-row input[type="date"]{width:auto;}
+  .filter-row .filter-actions{
+    display:flex;
+    gap:8px;
+    margin-left:auto;
+  }
+  @media(max-width:600px){
+    .filter-row .filter-actions{margin-left:0; width:100%;}
+  }
 
   /* ---------- Summary ---------- */
   .summary{
@@ -482,6 +538,10 @@
       <span class="mark">Olhatta</span>
       <span class="sub">notas fiscais</span>
     </div>
+    <div class="quick-links-row" id="quickLinksRow">
+      <div class="quick-links" id="quickLinks"></div>
+      <button class="icon-btn" id="manageLinksBtn" title="Gerenciar links rápidos">⚙</button>
+    </div>
     <div class="user-chip">
       <span id="userEmail"></span>
       <button class="btn btn-ghost" id="logoutBtn">Sair</button>
@@ -493,15 +553,22 @@
       <button id="prevMonth" aria-label="Mês anterior">‹</button>
       <span class="label" id="monthLabel">—</span>
       <button id="nextMonth" aria-label="Próximo mês">›</button>
-      <button class="filter-toggle" id="toggleFilter">Filtrar por período</button>
-      <div class="filter-row" id="filterRow">
-        <label for="filterFrom">De</label>
-        <input type="date" id="filterFrom">
-        <label for="filterTo">Até</label>
-        <input type="date" id="filterTo">
-        <button class="btn btn-ghost" id="applyFilter">Filtrar</button>
-        <button class="btn btn-ghost" id="clearFilter">Limpar</button>
-      </div>
+    </div>
+    <button class="filter-toggle" id="toggleFilter">Filtrar por período</button>
+  </div>
+
+  <div class="filter-row" id="filterRow">
+    <div class="field">
+      <label for="filterFrom">De</label>
+      <input type="date" id="filterFrom">
+    </div>
+    <div class="field">
+      <label for="filterTo">Até</label>
+      <input type="date" id="filterTo">
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary" id="applyFilter">Filtrar</button>
+      <button class="btn btn-ghost" id="clearFilter">Limpar</button>
     </div>
   </div>
 
@@ -510,6 +577,27 @@
   <div class="search-box" id="searchBox">
     <input type="text" id="searchInput" placeholder="Buscar cliente ou animal já cadastrado...">
     <div class="search-results" id="searchResults"></div>
+  </div>
+
+  <div class="form-panel" id="linksPanel">
+    <h3>Links rápidos</h3>
+    <div class="grid" style="grid-template-columns: 1fr 2fr auto; align-items:end;">
+      <div>
+        <label for="newLinkNome">Nome do botão</label>
+        <input type="text" id="newLinkNome" placeholder="Ex: WhatsApp">
+      </div>
+      <div>
+        <label for="newLinkUrl">Link</label>
+        <input type="text" id="newLinkUrl" placeholder="https://...">
+      </div>
+      <div>
+        <button class="btn btn-primary" id="addLinkBtn" style="width:100%;">Adicionar</button>
+      </div>
+    </div>
+    <div class="links-list" id="linksList"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" id="closeLinksPanel">Fechar</button>
+    </div>
   </div>
 
   <button class="add-toggle" id="toggleForm"><span class="plus">+</span> Novo lançamento</button>
@@ -659,6 +747,7 @@ const provider = new GoogleAuthProvider();
 const notasDocRef = doc(db, "olhatta", "notas-fiscais");
 
 let entries = [];
+let links = [];
 let editingId = null;
 let formEntryId = null;
 let currentMonth = new Date().getMonth();
@@ -717,6 +806,7 @@ onAuthStateChanged(auth, async (user) => {
     resetForm();
     await loadEntries();
     render();
+    renderQuickLinks();
   } else if(user){
     document.getElementById('loginError').textContent = 'Este e-mail (' + user.email + ') não tem acesso a este sistema.';
     await signOut(auth);
@@ -732,22 +822,87 @@ onAuthStateChanged(auth, async (user) => {
 async function loadEntries(){
   try{
     const snap = await getDoc(notasDocRef);
-    entries = snap.exists() ? (snap.data().entries || []) : [];
+    const data = snap.exists() ? snap.data() : {};
+    entries = data.entries || [];
+    links = data.links || [];
   }catch(e){
     console.error('Falha ao carregar do Firebase', e);
     alert('Não consegui carregar os dados do Firebase. Confira o firebaseConfig e as regras do Firestore.');
     entries = [];
+    links = [];
   }
 }
 
 async function saveEntries(){
   try{
-    await setDoc(notasDocRef, { entries, atualizadoEm: new Date().toISOString() });
+    await setDoc(notasDocRef, { entries, atualizadoEm: new Date().toISOString() }, { merge: true });
   }catch(e){
     console.error('Falha ao salvar no Firebase', e);
     alert('Não consegui salvar no Firebase. Confira sua conexão e as regras do Firestore.');
   }
 }
+
+// ---------- Links rápidos ----------
+function renderQuickLinks(){
+  document.getElementById('quickLinks').innerHTML = links.map(l =>
+    `<a class="quick-link" href="${l.url}" target="_blank" rel="noopener">${escapeHtml(l.nome)}</a>`
+  ).join('');
+}
+
+function renderLinksList(){
+  const el = document.getElementById('linksList');
+  if(links.length === 0){
+    el.innerHTML = '<p style="color:var(--ink-soft); font-size:13px; margin:10px 0 0;">Nenhum link cadastrado ainda.</p>';
+    return;
+  }
+  el.innerHTML = links.map((l,i) => `
+    <div class="link-row">
+      <span class="link-name">${escapeHtml(l.nome)}</span>
+      <a class="link-url" href="${l.url}" target="_blank" rel="noopener">${escapeHtml(l.url)}</a>
+      <button type="button" class="nf-copy-btn" onclick="removeLink(${i})">remover</button>
+    </div>`).join('');
+}
+
+async function saveLinks(){
+  try{
+    await setDoc(notasDocRef, { links, atualizadoEm: new Date().toISOString() }, { merge: true });
+  }catch(e){
+    console.error('Falha ao salvar links', e);
+    alert('Não consegui salvar os links. Confira sua conexão e as regras do Firestore.');
+  }
+}
+
+async function removeLink(i){
+  links.splice(i,1);
+  await saveLinks();
+  renderQuickLinks();
+  renderLinksList();
+}
+window.removeLink = removeLink;
+
+document.getElementById('manageLinksBtn').addEventListener('click', () => {
+  document.getElementById('linksPanel').classList.add('open');
+  document.getElementById('formPanel').classList.remove('open');
+  renderLinksList();
+});
+document.getElementById('closeLinksPanel').addEventListener('click', () => {
+  document.getElementById('linksPanel').classList.remove('open');
+});
+document.getElementById('addLinkBtn').addEventListener('click', async () => {
+  const nome = document.getElementById('newLinkNome').value.trim();
+  let url = document.getElementById('newLinkUrl').value.trim();
+  if(!nome || !url){
+    alert('Preencha o nome e o link.');
+    return;
+  }
+  if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  links.push({ nome, url });
+  document.getElementById('newLinkNome').value = '';
+  document.getElementById('newLinkUrl').value = '';
+  await saveLinks();
+  renderQuickLinks();
+  renderLinksList();
+});
 
 // ---------- Buscar cliente já cadastrado ----------
 document.getElementById('searchInput').addEventListener('input', (ev) => {
@@ -1105,6 +1260,7 @@ window.deleteEntry = deleteEntry;
 window.toggleDetails = toggleDetails;
 
 document.getElementById('toggleForm').addEventListener('click', () => {
+  document.getElementById('linksPanel').classList.remove('open');
   const panel = document.getElementById('formPanel');
   if(panel.classList.contains('open')){
     closeForm();
@@ -1142,6 +1298,13 @@ document.getElementById('clearFilter').addEventListener('click', () => {
   document.getElementById('filterTo').value = '';
   render();
 });
+
+// ---------- App instalável (PWA) ----------
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.warn('Service worker não registrado', e));
+  });
+}
 </script>
 </body>
 </html>
