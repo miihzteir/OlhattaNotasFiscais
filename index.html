@@ -208,6 +208,16 @@
   .link-row .link-name{font-weight:600; flex-shrink:0;}
   .link-row .link-url{color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;}
   .link-row a.link-url{color:var(--pine-dark);}
+  .service-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 0;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .service-row:last-child{border-bottom:none;}
+  .service-row input{flex:1;}
+  .service-row .nf-copy-btn{flex-shrink:0;}
 
   .user-chip{
     display:flex;
@@ -767,6 +777,10 @@
         <label for="f-email">E-mail</label>
         <input type="email" id="f-email" placeholder="cliente@email.com">
       </div>
+      <div>
+        <label for="f-telefone">Telefone</label>
+        <input type="text" id="f-telefone" placeholder="(66) 00000-0000">
+      </div>
 
       <div id="situacaoWrap" style="display:none;">
         <label for="f-feito">Situação</label>
@@ -783,7 +797,9 @@
         <div class="service-add-row">
           <input type="text" id="newServicoInput" placeholder="Adicionar novo serviço...">
           <button type="button" class="btn btn-ghost" id="addServicoBtn">Adicionar</button>
+          <button type="button" class="btn btn-ghost" id="manageServicosBtn" title="Editar ou excluir serviços salvos">Editar/excluir</button>
         </div>
+        <div class="links-list" id="servicosManageList" style="display:none;"></div>
       </div>
 
       <div class="full">
@@ -802,14 +818,22 @@
             <input type="text" id="f-nfNumero" placeholder="Nº">
           </div>
         </div>
-        <div class="grid" style="grid-template-columns: 1fr 2fr; margin-top:14px;">
+        <div class="grid" style="grid-template-columns: 1fr 2fr 1.3fr 1fr; margin-top:14px;">
           <div>
             <label for="f-nfCEP">CEP</label>
             <input type="text" id="f-nfCEP" placeholder="00000-000">
           </div>
           <div>
-            <label for="f-nfEndereco">Endereço (rua, bairro, cidade)</label>
-            <input type="text" id="f-nfEndereco" placeholder="Rua, bairro, cidade">
+            <label for="f-nfRua">Rua</label>
+            <input type="text" id="f-nfRua" placeholder="Nome da rua">
+          </div>
+          <div>
+            <label for="f-nfBairro">Bairro</label>
+            <input type="text" id="f-nfBairro" placeholder="Bairro">
+          </div>
+          <div>
+            <label for="f-nfEnderecoNumero">Número</label>
+            <input type="text" id="f-nfEnderecoNumero" placeholder="Nº">
           </div>
         </div>
         <div style="margin-top:14px;">
@@ -1081,6 +1105,100 @@ document.getElementById('newServicoInput').addEventListener('keydown', (ev) => {
   }
 });
 
+// ---------- Editar / excluir serviços salvos ----------
+function renderServicosManageList(){
+  const el = document.getElementById('servicosManageList');
+  if(servicosSalvos.length === 0){
+    el.innerHTML = '<p style="color:var(--ink-soft); font-size:13px; margin:10px 0 0;">Nenhum serviço salvo ainda.</p>';
+    return;
+  }
+  el.innerHTML = servicosSalvos.map((s,i) => `
+    <div class="service-row" data-idx="${i}">
+      <input type="text" value="${escapeHtml(s)}">
+      <button type="button" class="nf-copy-btn" data-action="salvar">salvar</button>
+      <button type="button" class="nf-copy-btn" data-action="excluir">excluir</button>
+    </div>`).join('');
+}
+
+document.getElementById('manageServicosBtn').addEventListener('click', () => {
+  const list = document.getElementById('servicosManageList');
+  const abrindo = list.style.display === 'none';
+  list.style.display = abrindo ? 'block' : 'none';
+  if(abrindo) renderServicosManageList();
+});
+
+document.getElementById('servicosManageList').addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('button[data-action]');
+  if(!btn) return;
+  const row = btn.closest('.service-row');
+  const idx = Number(row.getAttribute('data-idx'));
+  const antigo = servicosSalvos[idx];
+
+  if(btn.getAttribute('data-action') === 'excluir'){
+    if(!confirm(`Excluir o serviço "${antigo}" da lista?`)) return;
+    servicosSalvos.splice(idx, 1);
+    selectedServicos = selectedServicos.filter(s => s !== antigo);
+    await saveServicos();
+    renderServicosManageList();
+    renderServicoPicker();
+    return;
+  }
+
+  if(btn.getAttribute('data-action') === 'salvar'){
+    const novo = row.querySelector('input').value.trim();
+    if(!novo){
+      alert('O nome do serviço não pode ficar vazio.');
+      return;
+    }
+    servicosSalvos[idx] = novo;
+    if(selectedServicos.includes(antigo)){
+      selectedServicos = selectedServicos.map(s => s === antigo ? novo : s);
+    }
+    await saveServicos();
+    renderServicosManageList();
+    renderServicoPicker();
+    toast('Serviço atualizado.');
+  }
+});
+
+// ---------- CEP: máscara + autopreenchimento (ViaCEP) ----------
+const cepInputEl = document.getElementById('f-nfCEP');
+cepInputEl.addEventListener('input', () => {
+  let v = cepInputEl.value.replace(/\D/g, '').slice(0, 8);
+  if(v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
+  cepInputEl.value = v;
+});
+async function buscarEnderecoPorCEP(){
+  const digits = cepInputEl.value.replace(/\D/g, '');
+  if(digits.length !== 8) return;
+  cepInputEl.disabled = true;
+  try{
+    const resp = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+    const data = await resp.json();
+    if(data.erro){
+      toast('CEP não encontrado.');
+      return;
+    }
+    const ruaEl = document.getElementById('f-nfRua');
+    const bairroEl = document.getElementById('f-nfBairro');
+    if(data.logradouro && !ruaEl.value) ruaEl.value = data.logradouro;
+    if(data.bairro && !bairroEl.value) bairroEl.value = data.bairro;
+    document.getElementById('f-nfEnderecoNumero').focus();
+  }catch(e){
+    console.error('Falha ao buscar CEP', e);
+    toast('Não consegui buscar o CEP agora. Preencha manualmente.');
+  }finally{
+    cepInputEl.disabled = false;
+  }
+}
+cepInputEl.addEventListener('blur', buscarEnderecoPorCEP);
+cepInputEl.addEventListener('keydown', (ev) => {
+  if(ev.key === 'Enter'){
+    ev.preventDefault();
+    buscarEnderecoPorCEP();
+  }
+});
+
 // ---------- Buscar cliente já cadastrado ----------
 document.getElementById('searchInput').addEventListener('input', (ev) => {
   const q = ev.target.value.trim().toLowerCase();
@@ -1125,11 +1243,14 @@ function useForNewEntry(sourceId){
   document.getElementById('f-animal').value = src.animal || '';
   document.getElementById('f-cidade').value = src.cidade || '';
   document.getElementById('f-email').value = src.email || '';
+  document.getElementById('f-telefone').value = src.telefone || '';
   document.getElementById('f-nfNome').value = src.nfNome || '';
   document.getElementById('f-nfCPF').value = src.nfCPF || '';
   document.getElementById('f-nfNumero').value = src.nfNumero || '';
   document.getElementById('f-nfCEP').value = src.nfCEP || '';
-  document.getElementById('f-nfEndereco').value = src.nfEndereco || '';
+  document.getElementById('f-nfRua').value = src.nfRua || '';
+  document.getElementById('f-nfBairro').value = src.nfBairro || '';
+  document.getElementById('f-nfEnderecoNumero').value = src.nfEnderecoNumero || '';
   nfNomeManual = true;
   document.getElementById('searchInput').value = '';
   document.getElementById('searchResults').classList.remove('open');
@@ -1153,12 +1274,15 @@ function resetForm(){
   renderServicoPicker();
   document.getElementById('f-querNF').value = '';
   document.getElementById('f-email').value = '';
+  document.getElementById('f-telefone').value = '';
   document.getElementById('f-feito').value = 'Pendente';
   document.getElementById('f-nfNome').value = '';
   document.getElementById('f-nfCPF').value = '';
   document.getElementById('f-nfNumero').value = '';
   document.getElementById('f-nfCEP').value = '';
-  document.getElementById('f-nfEndereco').value = '';
+  document.getElementById('f-nfRua').value = '';
+  document.getElementById('f-nfBairro').value = '';
+  document.getElementById('f-nfEnderecoNumero').value = '';
   document.getElementById('f-observacao').value = '';
   editingId = null;
   formEntryId = uid();
@@ -1186,12 +1310,15 @@ function openForm(entry){
     renderServicoPicker();
     document.getElementById('f-querNF').value = entry.querNF;
     document.getElementById('f-email').value = entry.email;
+    document.getElementById('f-telefone').value = entry.telefone || '';
     document.getElementById('f-feito').value = entry.feito;
     document.getElementById('f-nfNome').value = entry.nfNome || '';
     document.getElementById('f-nfCPF').value = entry.nfCPF || '';
     document.getElementById('f-nfNumero').value = entry.nfNumero || '';
     document.getElementById('f-nfCEP').value = entry.nfCEP || '';
-    document.getElementById('f-nfEndereco').value = entry.nfEndereco || '';
+    document.getElementById('f-nfRua').value = entry.nfRua || '';
+    document.getElementById('f-nfBairro').value = entry.nfBairro || '';
+    document.getElementById('f-nfEnderecoNumero').value = entry.nfEnderecoNumero || '';
     document.getElementById('f-observacao').value = entry.observacao || '';
     document.getElementById('situacaoWrap').style.display = 'block';
     nfNomeManual = true;
@@ -1226,13 +1353,16 @@ async function handleSave(){
     servico: selectedServicos.join(', '),
     querNF: document.getElementById('f-querNF').value,
     email: document.getElementById('f-email').value.trim(),
+    telefone: document.getElementById('f-telefone').value.trim(),
     dataNota: existente ? (existente.dataNota || '') : '',
     feito: editingId ? document.getElementById('f-feito').value : 'Pendente',
     nfNome: document.getElementById('f-nfNome').value.trim(),
     nfCPF: document.getElementById('f-nfCPF').value.trim(),
     nfNumero: document.getElementById('f-nfNumero').value.trim(),
     nfCEP: document.getElementById('f-nfCEP').value.trim(),
-    nfEndereco: document.getElementById('f-nfEndereco').value.trim(),
+    nfRua: document.getElementById('f-nfRua').value.trim(),
+    nfBairro: document.getElementById('f-nfBairro').value.trim(),
+    nfEnderecoNumero: document.getElementById('f-nfEnderecoNumero').value.trim(),
     observacao: document.getElementById('f-observacao').value.trim(),
   };
   if(editingId){
@@ -1378,8 +1508,12 @@ function render(){
         ['nfCPF', 'CPF', e.nfCPF],
         ['nfNumero', 'Número', e.nfNumero],
         ['nfCEP', 'CEP', e.nfCEP],
+        ['nfRua', 'Rua', e.nfRua],
+        ['nfBairro', 'Bairro', e.nfBairro],
+        ['nfEnderecoNumero', 'Nº endereço', e.nfEnderecoNumero],
         ['nfEndereco', 'Endereço', e.nfEndereco],
         ['email', 'E-mail', e.email],
+        ['telefone', 'Telefone', e.telefone],
         ['valorNota', 'Valor na nota', e.valorNota ? money(e.valorNota) : ''],
         ['observacao', 'Observação', e.observacao],
       ].filter(([,,val]) => val);
