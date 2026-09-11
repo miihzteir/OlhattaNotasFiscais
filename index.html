@@ -804,7 +804,7 @@
 
       <div class="full">
         <label>Dados da NF</label>
-        <div class="grid" style="grid-template-columns: 2fr 1fr 1fr;">
+        <div class="grid" style="grid-template-columns: 2fr 1fr;">
           <div>
             <label for="f-nfNome">Nome completo</label>
             <input type="text" id="f-nfNome" placeholder="Nome completo do cliente">
@@ -812,10 +812,6 @@
           <div>
             <label for="f-nfCPF">CPF</label>
             <input type="text" id="f-nfCPF" placeholder="000.000.000-00">
-          </div>
-          <div>
-            <label for="f-nfNumero">Número</label>
-            <input type="text" id="f-nfNumero" placeholder="Nº">
           </div>
         </div>
         <div class="grid" style="grid-template-columns: 1fr 2fr 1.3fr 1fr; margin-top:14px;">
@@ -1246,7 +1242,6 @@ function useForNewEntry(sourceId){
   document.getElementById('f-telefone').value = src.telefone || '';
   document.getElementById('f-nfNome').value = src.nfNome || '';
   document.getElementById('f-nfCPF').value = src.nfCPF || '';
-  document.getElementById('f-nfNumero').value = src.nfNumero || '';
   document.getElementById('f-nfCEP').value = src.nfCEP || '';
   document.getElementById('f-nfRua').value = src.nfRua || '';
   document.getElementById('f-nfBairro').value = src.nfBairro || '';
@@ -1278,7 +1273,6 @@ function resetForm(){
   document.getElementById('f-feito').value = 'Pendente';
   document.getElementById('f-nfNome').value = '';
   document.getElementById('f-nfCPF').value = '';
-  document.getElementById('f-nfNumero').value = '';
   document.getElementById('f-nfCEP').value = '';
   document.getElementById('f-nfRua').value = '';
   document.getElementById('f-nfBairro').value = '';
@@ -1314,7 +1308,6 @@ function openForm(entry){
     document.getElementById('f-feito').value = entry.feito;
     document.getElementById('f-nfNome').value = entry.nfNome || '';
     document.getElementById('f-nfCPF').value = entry.nfCPF || '';
-    document.getElementById('f-nfNumero').value = entry.nfNumero || '';
     document.getElementById('f-nfCEP').value = entry.nfCEP || '';
     document.getElementById('f-nfRua').value = entry.nfRua || '';
     document.getElementById('f-nfBairro').value = entry.nfBairro || '';
@@ -1358,7 +1351,6 @@ async function handleSave(){
     feito: editingId ? document.getElementById('f-feito').value : 'Pendente',
     nfNome: document.getElementById('f-nfNome').value.trim(),
     nfCPF: document.getElementById('f-nfCPF').value.trim(),
-    nfNumero: document.getElementById('f-nfNumero').value.trim(),
     nfCEP: document.getElementById('f-nfCEP').value.trim(),
     nfRua: document.getElementById('f-nfRua').value.trim(),
     nfBairro: document.getElementById('f-nfBairro').value.trim(),
@@ -1506,12 +1498,10 @@ function render(){
       const nfFields = [
         ['nfNome', 'Nome', e.nfNome],
         ['nfCPF', 'CPF', e.nfCPF],
-        ['nfNumero', 'Número', e.nfNumero],
         ['nfCEP', 'CEP', e.nfCEP],
         ['nfRua', 'Rua', e.nfRua],
         ['nfBairro', 'Bairro', e.nfBairro],
         ['nfEnderecoNumero', 'Nº endereço', e.nfEnderecoNumero],
-        ['nfEndereco', 'Endereço', e.nfEndereco],
         ['email', 'E-mail', e.email],
         ['telefone', 'Telefone', e.telefone],
         ['valorNota', 'Valor na nota', e.valorNota ? money(e.valorNota) : ''],
