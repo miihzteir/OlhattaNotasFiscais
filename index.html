@@ -676,6 +676,7 @@
     </div>
     <div class="filter-actions">
       <button class="btn btn-primary" id="applyFilter">Filtrar</button>
+      <button class="btn btn-ghost" id="last7Filter">Últimos 7 dias</button>
       <button class="btn btn-ghost" id="clearFilter">Limpar</button>
     </div>
   </div>
@@ -830,6 +831,16 @@
           <div>
             <label for="f-nfEnderecoNumero">Número</label>
             <input type="text" id="f-nfEnderecoNumero" placeholder="Nº">
+          </div>
+        </div>
+        <div class="grid" style="grid-template-columns: 3fr 1fr; margin-top:14px;">
+          <div>
+            <label for="f-nfCidade">Cidade</label>
+            <input type="text" id="f-nfCidade" placeholder="Cidade do cliente">
+          </div>
+          <div>
+            <label for="f-nfEstado">Estado</label>
+            <input type="text" id="f-nfEstado" placeholder="UF" maxlength="2" style="text-transform:uppercase;">
           </div>
         </div>
         <div style="margin-top:14px;">
@@ -1180,17 +1191,10 @@ async function buscarEnderecoPorCEP(){
     if(data.logradouro && !ruaEl.value) ruaEl.value = data.logradouro;
     if(data.bairro && !bairroEl.value) bairroEl.value = data.bairro;
 
-    const cidadeEl = document.getElementById('f-cidade');
-    if(data.localidade && !cidadeEl.value){
-      const normalizar = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-      const alvo = normalizar(data.localidade);
-      const opcao = [...cidadeEl.options].find(o => o.value && normalizar(o.value) === alvo);
-      if(opcao){
-        cidadeEl.value = opcao.value;
-      } else {
-        toast(`Cidade do CEP (${data.localidade}) não está na lista. Selecione manualmente.`);
-      }
-    }
+    const nfCidadeEl = document.getElementById('f-nfCidade');
+    const nfEstadoEl = document.getElementById('f-nfEstado');
+    if(data.localidade && !nfCidadeEl.value) nfCidadeEl.value = data.localidade;
+    if(data.uf && !nfEstadoEl.value) nfEstadoEl.value = data.uf;
 
     document.getElementById('f-nfEnderecoNumero').focus();
   }catch(e){
@@ -1259,6 +1263,8 @@ function useForNewEntry(sourceId){
   document.getElementById('f-nfRua').value = src.nfRua || '';
   document.getElementById('f-nfBairro').value = src.nfBairro || '';
   document.getElementById('f-nfEnderecoNumero').value = src.nfEnderecoNumero || '';
+  document.getElementById('f-nfCidade').value = src.nfCidade || '';
+  document.getElementById('f-nfEstado').value = src.nfEstado || '';
   nfNomeManual = true;
   document.getElementById('searchInput').value = '';
   document.getElementById('searchResults').classList.remove('open');
@@ -1290,6 +1296,8 @@ function resetForm(){
   document.getElementById('f-nfRua').value = '';
   document.getElementById('f-nfBairro').value = '';
   document.getElementById('f-nfEnderecoNumero').value = '';
+  document.getElementById('f-nfCidade').value = '';
+  document.getElementById('f-nfEstado').value = '';
   document.getElementById('f-observacao').value = '';
   editingId = null;
   formEntryId = uid();
@@ -1325,6 +1333,8 @@ function openForm(entry){
     document.getElementById('f-nfRua').value = entry.nfRua || '';
     document.getElementById('f-nfBairro').value = entry.nfBairro || '';
     document.getElementById('f-nfEnderecoNumero').value = entry.nfEnderecoNumero || '';
+    document.getElementById('f-nfCidade').value = entry.nfCidade || '';
+    document.getElementById('f-nfEstado').value = entry.nfEstado || '';
     document.getElementById('f-observacao').value = entry.observacao || '';
     document.getElementById('situacaoWrap').style.display = 'block';
     nfNomeManual = true;
@@ -1368,6 +1378,8 @@ async function handleSave(){
     nfRua: document.getElementById('f-nfRua').value.trim(),
     nfBairro: document.getElementById('f-nfBairro').value.trim(),
     nfEnderecoNumero: document.getElementById('f-nfEnderecoNumero').value.trim(),
+    nfCidade: document.getElementById('f-nfCidade').value.trim(),
+    nfEstado: document.getElementById('f-nfEstado').value.trim().toUpperCase(),
     observacao: document.getElementById('f-observacao').value.trim(),
   };
   if(editingId){
@@ -1515,6 +1527,8 @@ function render(){
         ['nfRua', 'Rua', e.nfRua],
         ['nfBairro', 'Bairro', e.nfBairro],
         ['nfEnderecoNumero', 'Nº endereço', e.nfEnderecoNumero],
+        ['nfCidade', 'Cidade', e.nfCidade],
+        ['nfEstado', 'Estado', e.nfEstado],
         ['email', 'E-mail', e.email],
         ['telefone', 'Telefone', e.telefone],
         ['valorNota', 'Valor na nota', e.valorNota ? money(e.valorNota) : ''],
@@ -1620,6 +1634,15 @@ document.getElementById('clearFilter').addEventListener('click', () => {
   filterFrom = ''; filterTo = '';
   document.getElementById('filterFrom').value = '';
   document.getElementById('filterTo').value = '';
+  render();
+});
+document.getElementById('last7Filter').addEventListener('click', () => {
+  const seteAtras = new Date();
+  seteAtras.setDate(seteAtras.getDate() - 6);
+  filterFrom = seteAtras.toISOString().slice(0,10);
+  filterTo = today();
+  document.getElementById('filterFrom').value = filterFrom;
+  document.getElementById('filterTo').value = filterTo;
   render();
 });
 
