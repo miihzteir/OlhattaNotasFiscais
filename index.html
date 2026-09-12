@@ -1179,6 +1179,19 @@ async function buscarEnderecoPorCEP(){
     const bairroEl = document.getElementById('f-nfBairro');
     if(data.logradouro && !ruaEl.value) ruaEl.value = data.logradouro;
     if(data.bairro && !bairroEl.value) bairroEl.value = data.bairro;
+
+    const cidadeEl = document.getElementById('f-cidade');
+    if(data.localidade && !cidadeEl.value){
+      const normalizar = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+      const alvo = normalizar(data.localidade);
+      const opcao = [...cidadeEl.options].find(o => o.value && normalizar(o.value) === alvo);
+      if(opcao){
+        cidadeEl.value = opcao.value;
+      } else {
+        toast(`Cidade do CEP (${data.localidade}) não está na lista. Selecione manualmente.`);
+      }
+    }
+
     document.getElementById('f-nfEnderecoNumero').focus();
   }catch(e){
     console.error('Falha ao buscar CEP', e);
