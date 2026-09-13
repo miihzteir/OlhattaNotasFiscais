@@ -1420,7 +1420,7 @@ function copyField(id, fieldKey, label){
   if(!e) return;
   let raw = e[fieldKey];
   if(fieldKey === 'valorNota' || fieldKey === 'valorCobrado' || fieldKey === 'splits'){
-    raw = (Number(raw)||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+    raw = (Number(raw)||0).toFixed(2).replace('.', ',');
   }
   const valor = (raw || '').toString();
   if(!valor){ return; }
