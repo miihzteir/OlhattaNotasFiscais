@@ -293,7 +293,7 @@
     gap:6px;
   }
   .filter-row label{margin:0; font-size:12.5px; color:var(--ink-soft); white-space:nowrap;}
-  .filter-row input[type="date"]{width:auto;}
+  .filter-row input[type="date"], .filter-row select{width:auto;}
   .filter-row .filter-actions{
     display:flex;
     gap:8px;
@@ -662,7 +662,7 @@
       <span class="label" id="monthLabel">—</span>
       <button id="nextMonth" aria-label="Próximo mês">›</button>
     </div>
-    <button class="filter-toggle" id="toggleFilter">Filtrar por período</button>
+    <button class="filter-toggle" id="toggleFilter">Filtrar</button>
   </div>
 
   <div class="filter-row" id="filterRow">
@@ -673,6 +673,14 @@
     <div class="field">
       <label for="filterTo">Até</label>
       <input type="date" id="filterTo">
+    </div>
+    <div class="field">
+      <label for="filterStatus">Situação</label>
+      <select id="filterStatus">
+        <option value="">Todas</option>
+        <option value="Feito">Feitas</option>
+        <option value="Pendente">Pendentes</option>
+      </select>
     </div>
     <div class="filter-actions">
       <button class="btn btn-primary" id="applyFilter">Filtrar</button>
@@ -896,6 +904,7 @@ let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 let filterFrom = '';
 let filterTo = '';
+let filterStatus = '';
 
 const monthNames = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 
@@ -1473,8 +1482,14 @@ function entriesForRange(){
   });
 }
 
+function applyStatusFilter(list){
+  if(!filterStatus) return list;
+  return list.filter(e => (e.feito === 'Feito' ? 'Feito' : 'Pendente') === filterStatus);
+}
+
 function getFilteredEntries(){
-  return (filterFrom || filterTo) ? entriesForRange() : entriesForMonth();
+  const base = (filterFrom || filterTo) ? entriesForRange() : entriesForMonth();
+  return applyStatusFilter(base);
 }
 
 function render(){
@@ -1521,18 +1536,18 @@ function render(){
 
     const rows = list.map(e => {
       const nfFields = [
-        ['nfNome', 'Nome', e.nfNome],
         ['nfCPF', 'CPF', e.nfCPF],
-        ['nfCEP', 'CEP', e.nfCEP],
+        ['nfNome', 'Nome', e.nfNome],
         ['nfRua', 'Rua', e.nfRua],
+        ['nfEnderecoNumero', 'Número', e.nfEnderecoNumero],
         ['nfBairro', 'Bairro', e.nfBairro],
-        ['nfEnderecoNumero', 'Nº endereço', e.nfEnderecoNumero],
-        ['nfCidade', 'Cidade', e.nfCidade],
-        ['nfEstado', 'Estado', e.nfEstado],
         ['email', 'E-mail', e.email],
         ['telefone', 'Telefone', e.telefone],
+        ['nfCEP', 'CEP', e.nfCEP],
+        ['nfEstado', 'Estado', e.nfEstado],
+        ['nfCidade', 'Cidade', e.nfCidade],
+        ['observacao', 'Obs.', e.observacao],
         ['valorNota', 'Valor na nota', e.valorNota ? money(e.valorNota) : ''],
-        ['observacao', 'Observação', e.observacao],
       ].filter(([,,val]) => val);
       const hasNF = nfFields.length > 0;
 
@@ -1628,12 +1643,14 @@ document.getElementById('toggleFilter').addEventListener('click', () => {
 document.getElementById('applyFilter').addEventListener('click', () => {
   filterFrom = document.getElementById('filterFrom').value;
   filterTo = document.getElementById('filterTo').value;
+  filterStatus = document.getElementById('filterStatus').value;
   render();
 });
 document.getElementById('clearFilter').addEventListener('click', () => {
-  filterFrom = ''; filterTo = '';
+  filterFrom = ''; filterTo = ''; filterStatus = '';
   document.getElementById('filterFrom').value = '';
   document.getElementById('filterTo').value = '';
+  document.getElementById('filterStatus').value = '';
   render();
 });
 document.getElementById('last7Filter').addEventListener('click', () => {
