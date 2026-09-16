@@ -522,7 +522,7 @@
   .tag.feito{background:var(--ok-bg); color:var(--ok);}
   .tag.pendente{background:var(--pending-bg); color:var(--pending-ink);}
   .tag.nf-sim{background:var(--gold-soft); color:#7A5A1E;}
-  .tag.nf-nao{background:var(--paper-line); color:var(--ink-soft);}
+  .tag.nf-nao{background:var(--rose); color:#fff; font-weight:700;}
 
   .entry-actions{
     display:flex;
@@ -1519,7 +1519,7 @@ function render(){
   monthEntries.forEach(e => {
     (groups[e.data] = groups[e.data] || []).push(e);
   });
-  const dates = Object.keys(groups).sort();
+  const dates = Object.keys(groups).sort((a,b) => b.localeCompare(a));
 
   const container = document.getElementById('weeksContainer');
   if(dates.length === 0){
@@ -1559,7 +1559,7 @@ function render(){
             ${e.animal ? `<span class="animal">${escapeHtml(e.animal)}</span>` : ''}
             <span class="tag ${e.feito==='Feito' ? 'feito' : 'pendente'}">${e.feito==='Feito' ? 'Feito' : 'Pendente'}</span>
             ${e.querNF==='Sim' ? `<span class="tag nf-sim">Quer NF</span>` : ''}
-            ${e.querNF==='Não' ? `<span class="tag nf-nao">Não quer NF</span>` : ''}
+            ${e.querNF==='Não' ? `<span class="tag nf-nao">⚠ NÃO QUER NF</span>` : ''}
           </div>
           <div class="meta">
             ${e.cidade ? `<span><b>${escapeHtml(e.cidade)}</b></span>` : ''}
